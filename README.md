@@ -22,6 +22,12 @@ python evaluate.py                         # parity plots
 pytest tests/ -q                           # quantum layer sanity check
 ```
 
+Add `--features reduced` to `train_gradient_free.py` / `baseline_xgboost.py` to use
+only ionization energy, Ewald site energy and Coulomb potential - the only feature
+types in the paper's Fig. 4. Results are saved with a `_reduced` suffix.
+`evaluate.py` plots true energy on x and predicted on y (the paper's Fig. 3 layout;
+its x-axis label "Predicted" appears to be swapped).
+
 ## Files
 | File | Role |
 |---|---|

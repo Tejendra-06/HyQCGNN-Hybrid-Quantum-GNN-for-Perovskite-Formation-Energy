@@ -79,10 +79,18 @@ class QuantumLayer:
         # (Qiskit convention: qubit 0 is the least-significant bit)
         basis = np.arange(DIM)
         self.signs = np.stack([1 - 2 * ((basis >> q) & 1) for q in range(N)], axis=1)
+        self._cached_params = None
+        self._cached_unitary = None
 
     def unitary(self, params: np.ndarray) -> np.ndarray:
-        bound = self.circuit.assign_parameters(dict(zip(self.param_list, map(float, params))))
-        return Operator(bound).data
+        # Training and validation passes of one optimiser iteration share the same
+        # parameters, so cache the last U: the circuit is built once per iteration.
+        params = np.asarray(params, dtype=np.float64)
+        if self._cached_params is None or not np.array_equal(params, self._cached_params):
+            bound = self.circuit.assign_parameters(dict(zip(self.param_list, map(float, params))))
+            self._cached_unitary = Operator(bound).data
+            self._cached_params = params.copy()
+        return self._cached_unitary
 
     def forward(self, features: np.ndarray, params: np.ndarray) -> np.ndarray:
         states = amplitude_encode(features)             # (B, 32)

@@ -1,0 +1,10 @@
+{
+  "model": "xgboost",
+  "features": "full",
+  "seed": 3,
+  "best_iteration": 384,
+  "test_mse": 0.12617855794926566,
+  "test_mae": 0.2912271136045456,
+  "test_r2_linear_fit": 0.6508221883799944,
+  "test_r2_score": 0.6026995353845127
+}

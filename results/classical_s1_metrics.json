@@ -1,0 +1,14 @@
+{
+  "model": "classical",
+  "features": "full",
+  "seed": 1,
+  "target_scaling": true,
+  "iterations": 2000,
+  "n_parameters": 118,
+  "best_val_mse": 0.30096117782732607,
+  "test_mse": 0.38621936467144635,
+  "test_mae": 0.4631686405914779,
+  "test_r2_linear_fit": 0.1437652275447197,
+  "test_r2_score": 0.05996637060731436,
+  "seconds": 16.35073184967041
+}

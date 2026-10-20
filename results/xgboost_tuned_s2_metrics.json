@@ -1,0 +1,19 @@
+{
+  "model": "xgboost_tuned",
+  "seed": 2,
+  "cv_mse": 0.13144504774653612,
+  "best_params": {
+    "subsample": 0.6,
+    "reg_lambda": 0.1,
+    "n_estimators": 800,
+    "min_child_weight": 8,
+    "max_depth": 8,
+    "learning_rate": 0.02,
+    "gamma": 0.0,
+    "colsample_bytree": 1.0
+  },
+  "test_mse": 0.14130348137868196,
+  "test_mae": 0.3163705296814442,
+  "test_r2_linear_fit": 0.6862234371922095,
+  "test_r2_score": 0.6504880731970363
+}

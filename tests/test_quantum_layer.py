@@ -1,6 +1,6 @@
 """Checks that the fast batched quantum layer equals the full Qiskit circuit.
 
-Run:  pytest tests/ -q      (from the hyqcgnn/ folder)
+Run:  pytest tests/ -q      (from the quantum-project/ folder)
 """
 import sys
 from pathlib import Path
@@ -41,6 +41,17 @@ def _z(qubit: int):
     label = ["I"] * config.N_QUBITS
     label[config.N_QUBITS - 1 - qubit] = "Z"  # Qiskit labels are little-endian
     return SparsePauliOp("".join(label))
+
+
+def test_unitary_cache_follows_params():
+    rng = np.random.default_rng(3)
+    layer = QuantumLayer()
+    p1, p2 = rng.uniform(0, 2 * np.pi, size=(2, N_QUANTUM_PARAMS))
+    u1 = layer.unitary(p1)
+    assert layer.unitary(p1.copy()) is u1           # same params -> cached, not rebuilt
+    u2 = layer.unitary(p2)
+    assert not np.allclose(u1, u2)                  # new params -> rebuilt
+    assert np.allclose(layer.unitary(p1), u1)       # and back again is still correct
 
 
 def test_expectations_in_range():

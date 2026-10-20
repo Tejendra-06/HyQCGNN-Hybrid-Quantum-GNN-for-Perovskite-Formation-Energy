@@ -1,7 +1,8 @@
 """Splitting and scaling of the graph data set (shared by every model).
 
 `load_splits()` returns train / validation / test lists of PyG `Data` objects
-(196 / 25 / 25 by default). Node and edge features are standardised with
+(196 / 25 / 25 by default), keeping only the columns of the chosen feature set
+(see config.FEATURE_SETS). Node and edge features are standardised with
 statistics computed on the TRAINING graphs only, so nothing leaks from the
 validation or test sets. `flatten_graphs()` produces the tabular view used by
 the XGBoost baseline.
@@ -22,8 +23,8 @@ class Splits:
     test: list
 
 
-def _split_indices(n: int):
-    rng = np.random.default_rng(config.SEED)
+def _split_indices(n: int, seed: int):
+    rng = np.random.default_rng(seed)
     perm = rng.permutation(n)
     a = config.N_TRAIN
     b = a + config.N_VAL
@@ -43,16 +44,24 @@ def _standardise(graphs_by_split: dict, train_key: str = "train") -> None:
             g.edge_attr = (g.edge_attr - e_mu) / e_sd
 
 
-def load_splits() -> Splits:
+def _select_columns(g: Data, feature_set: str) -> Data:
+    node_names, edge_names = config.FEATURE_SETS[feature_set]
+    g = g.clone()
+    g.x = g.x[:, [config.NODE_FEATURES.index(f) for f in node_names]]
+    g.edge_attr = g.edge_attr[:, [config.EDGE_FEATURES.index(f) for f in edge_names]]
+    return g
+
+
+def load_splits(feature_set: str = config.DEFAULT_FEATURE_SET, seed: int = config.SEED) -> Splits:
     if not config.GRAPH_PATH.exists():
         raise SystemExit("Run `python fetch_data.py` then `python featurize.py` first.")
     graphs = torch.load(config.GRAPH_PATH, weights_only=False)
     graphs = graphs[: config.N_TOTAL]
-    tr, va, te = _split_indices(len(graphs))
+    tr, va, te = _split_indices(len(graphs), seed)
     by_split = {
-        "train": [graphs[i].clone() for i in tr],
-        "val": [graphs[i].clone() for i in va],
-        "test": [graphs[i].clone() for i in te],
+        "train": [_select_columns(graphs[i], feature_set) for i in tr],
+        "val": [_select_columns(graphs[i], feature_set) for i in va],
+        "test": [_select_columns(graphs[i], feature_set) for i in te],
     }
     _standardise(by_split)
     return Splits(**by_split)
@@ -63,15 +72,16 @@ def as_batch(graphs: list) -> Batch:
     return Batch.from_data_list(graphs)
 
 
-def flatten_graphs(graphs: list):
+def flatten_graphs(graphs: list, feature_set: str = config.DEFAULT_FEATURE_SET):
     """Tabular view for XGBoost: all node features + upper-triangle edge features.
 
     Returns (X, y, feature_names).
     """
+    node_names, edge_names = config.FEATURE_SETS[feature_set]
     n = config.N_ATOMS
     pairs = [(i, j) for i in range(n) for j in range(i + 1, n)]
-    names = [f"{f}({i})" for i in range(n) for f in config.NODE_FEATURES]
-    names += [f"{f}({i},{j})" for (i, j) in pairs for f in config.EDGE_FEATURES]
+    names = [f"{f}({i})" for i in range(n) for f in node_names]
+    names += [f"{f}({i},{j})" for (i, j) in pairs for f in edge_names]
 
     rows, ys = [], []
     for g in graphs:

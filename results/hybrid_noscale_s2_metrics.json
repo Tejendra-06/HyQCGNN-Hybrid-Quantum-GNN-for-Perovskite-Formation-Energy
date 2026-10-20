@@ -1,0 +1,14 @@
+{
+  "model": "hybrid",
+  "features": "full",
+  "seed": 2,
+  "target_scaling": false,
+  "iterations": 2000,
+  "n_parameters": 128,
+  "best_val_mse": 0.1896057014091329,
+  "test_mse": 0.46252899516674817,
+  "test_mae": 0.5632640095055104,
+  "test_r2_linear_fit": 0.009819768255669534,
+  "test_r2_score": -0.1440581557204148,
+  "seconds": 13.26598310470581
+}

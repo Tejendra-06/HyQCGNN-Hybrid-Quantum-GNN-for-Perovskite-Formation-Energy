@@ -1,0 +1,12 @@
+{
+  "model": "hybrid",
+  "features": "reduced",
+  "iterations": 2000,
+  "n_parameters": 89,
+  "best_val_mse": 0.22171884274864462,
+  "test_mse": 0.3941461806076723,
+  "test_mae": 0.47888908386230467,
+  "test_r2_linear_fit": 0.1009249769807077,
+  "test_r2_score": -0.01329346708611312,
+  "seconds": 20.10985016822815
+}

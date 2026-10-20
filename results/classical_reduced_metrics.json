@@ -1,0 +1,12 @@
+{
+  "model": "classical",
+  "features": "reduced",
+  "iterations": 2000,
+  "n_parameters": 79,
+  "best_val_mse": 0.3140503982040932,
+  "test_mse": 0.472874103520591,
+  "test_mae": 0.5067522585391998,
+  "test_r2_linear_fit": 0.013412676271563327,
+  "test_r2_score": -0.21569169873186378,
+  "seconds": 9.064403295516968
+}

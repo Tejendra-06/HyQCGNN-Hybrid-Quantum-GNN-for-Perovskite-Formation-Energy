@@ -1,0 +1,9 @@
+{
+  "model": "xgboost",
+  "features": "reduced",
+  "best_iteration": 30,
+  "test_mse": 0.19129008901238087,
+  "test_mae": 0.3336044216156006,
+  "test_r2_linear_fit": 0.6216979546149799,
+  "test_r2_score": 0.50822053580292
+}
