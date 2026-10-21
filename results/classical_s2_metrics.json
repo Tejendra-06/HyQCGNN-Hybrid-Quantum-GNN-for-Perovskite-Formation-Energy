@@ -4,11 +4,16 @@
   "seed": 2,
   "target_scaling": true,
   "iterations": 2000,
+  "hidden": 4,
+  "optimizer": "NGOpt",
+  "freeze_quantum": false,
+  "dataset": "paper",
+  "n_train": 196,
   "n_parameters": 118,
-  "best_val_mse": 0.11952594811243586,
-  "test_mse": 0.2641368074128108,
-  "test_mae": 0.406271417968582,
-  "test_r2_linear_fit": 0.3560796180450888,
-  "test_r2_score": 0.3466617835761068,
-  "seconds": 6.24430775642395
+  "best_val_mse": 0.11094631646586238,
+  "test_mse": 0.33051837765976144,
+  "test_mae": 0.4960827711194765,
+  "test_r2_linear_fit": 0.2843722022577751,
+  "test_r2_score": 0.1824680192410244,
+  "seconds": 78.94801926612854
 }

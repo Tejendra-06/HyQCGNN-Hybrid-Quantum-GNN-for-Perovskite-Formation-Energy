@@ -2,6 +2,8 @@
   "model": "xgboost",
   "features": "full",
   "seed": 42,
+  "dataset": "paper",
+  "n_train": 196,
   "best_iteration": 251,
   "test_mse": 0.12936007321423496,
   "test_mae": 0.30037230491638184,

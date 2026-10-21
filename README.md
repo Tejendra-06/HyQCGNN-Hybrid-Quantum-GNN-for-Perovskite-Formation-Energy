@@ -28,6 +28,21 @@ types in the paper's Fig. 4. Results are saved with a `_reduced` suffix.
 `evaluate.py` plots true energy on x and predicted on y (the paper's Fig. 3 layout;
 its x-axis label "Predicted" appears to be swapped).
 
+### Extra experiments
+```bash
+python train_gradient_free.py --model hybrid --seed 1   # repeat for every seed in config.SEEDS
+python tune_xgboost.py --seed 1                        # tuned XGBoost per seed
+python summarize_seeds.py                               # mean +/- std -> results/seed_summary.json
+python xgboost_learning_curve.py                        # XGBoost on growing subsets of all ABO3 oxides
+```
+Other `train_gradient_free.py` options: `--iterations N`, `--no-target-scaling`,
+`--hidden N`, `--optimizer {NGOpt,CMA,TwoPointsDE,PSO,OnePlusOne}`, `--freeze-quantum`
+(hybrid ablation) and `--dataset all` (every ABO3 oxide, 80/10/10 split; needs
+`fetch_data.py --all` and `featurize.py --all`). Each option adds a suffix to the result
+file names. Hybrid runs also report the test R^2 under shot noise (`config.EVAL_SHOTS`).
+
+The final report is `HyQCGNN_Final_Project_Report.docx`, with figures in `report_figures/`.
+
 ## Files
 | File | Role |
 |---|---|
@@ -41,6 +56,9 @@ its x-axis label "Predicted" appears to be swapped).
 | `train_gradient_free.py` | NGOpt training loop, validation model selection, test evaluation |
 | `baseline_xgboost.py` | XGBoost baseline and feature importances |
 | `evaluate.py` | true-vs-predicted plots with R^2 |
+| `tune_xgboost.py` | randomised hyper-parameter search for XGBoost (5-fold CV on train) |
+| `summarize_seeds.py` | mean +/- std of test metrics across seeds |
+| `xgboost_learning_curve.py` | XGBoost R^2 vs training-set size on all ABO3 oxides |
 | `tests/test_quantum_layer.py` | fast quantum layer == full Qiskit circuit |
 
 ## Notes on interpretation

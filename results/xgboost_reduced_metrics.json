@@ -1,9 +1,12 @@
 {
   "model": "xgboost",
   "features": "reduced",
-  "best_iteration": 30,
-  "test_mse": 0.19129008901238087,
-  "test_mae": 0.3336044216156006,
-  "test_r2_linear_fit": 0.6216979546149799,
-  "test_r2_score": 0.50822053580292
+  "seed": 42,
+  "dataset": "paper",
+  "n_train": 196,
+  "best_iteration": 73,
+  "test_mse": 0.2034946309713316,
+  "test_mae": 0.3708853244781494,
+  "test_r2_linear_fit": 0.49797117880669606,
+  "test_r2_score": 0.4768444036868693
 }

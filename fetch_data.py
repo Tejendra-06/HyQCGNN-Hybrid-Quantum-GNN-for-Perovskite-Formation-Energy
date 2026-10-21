@@ -1,8 +1,8 @@
 """Step 1 - download the perovskite dataset and keep only ABO3 oxides.
 
 Run:  python fetch_data.py          (the 246-structure sample used everywhere)
-      python fetch_data.py --all    (also save every ABO3 oxide, for subset_study.py
-                                     and `--dataset all` training)
+      python fetch_data.py --all    (also save every ABO3 oxide, for
+                                     `--dataset all` training)
 
 Source: the Castelli perovskites data set as packaged in MatBench
 (`matbench_perovskites`, 18,928 five-atom cubic perovskites with DFT formation

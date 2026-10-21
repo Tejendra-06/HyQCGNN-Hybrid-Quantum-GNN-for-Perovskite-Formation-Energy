@@ -1,12 +1,19 @@
 {
   "model": "classical",
   "features": "reduced",
+  "seed": 42,
+  "target_scaling": true,
   "iterations": 2000,
+  "hidden": 4,
+  "optimizer": "NGOpt",
+  "freeze_quantum": false,
+  "dataset": "paper",
+  "n_train": 196,
   "n_parameters": 79,
-  "best_val_mse": 0.3140503982040932,
-  "test_mse": 0.472874103520591,
-  "test_mae": 0.5067522585391998,
-  "test_r2_linear_fit": 0.013412676271563327,
-  "test_r2_score": -0.21569169873186378,
-  "seconds": 9.064403295516968
+  "best_val_mse": 0.24819014317094493,
+  "test_mse": 0.3629368866337929,
+  "test_mae": 0.5007512398183629,
+  "test_r2_linear_fit": 0.22184630241319714,
+  "test_r2_score": 0.06694116476378997,
+  "seconds": 119.08100986480713
 }
