@@ -92,10 +92,17 @@ class QuantumLayer:
             self._cached_params = params.copy()
         return self._cached_unitary
 
-    def forward(self, features: np.ndarray, params: np.ndarray) -> np.ndarray:
+    def forward(self, features: np.ndarray, params: np.ndarray, shots: int | None = None,
+                rng: np.random.Generator | None = None) -> np.ndarray:
+        """Exact <Z_i> by default; with `shots`, estimates from that many samples
+        of the measurement outcomes (like the paper's QASM simulator)."""
         states = amplitude_encode(features)             # (B, 32)
         out = states @ self.unitary(params).T           # psi' = U psi  (row-vector form)
         probs = np.abs(out) ** 2
+        if shots is not None:
+            rng = rng or np.random.default_rng()
+            probs = probs / probs.sum(axis=1, keepdims=True)
+            probs = np.stack([rng.multinomial(shots, p) for p in probs]) / shots
         return probs @ self.signs                       # (B, 5)
 
     # ---- full circuit for a single input: used for tests / drawing / hardware

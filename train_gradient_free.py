@@ -6,7 +6,16 @@ Run:
     (optional: --iterations 200 for a quick smoke test,
                --features reduced to use only the paper's Fig. 4 feature types,
                --seed N for another data split / initialisation / optimiser run,
-               --no-target-scaling to train on raw energies)
+               --no-target-scaling to train on raw energies,
+               --hidden N for a wider GENConv embedding,
+               --optimizer CMA etc. instead of NGOpt's automatic choice,
+               --dataset all to use every ABO3 oxide (80/10/10 split),
+               --freeze-quantum to keep the circuit angles at their random
+                 initial values - an ablation that shows whether training the
+                 quantum layer matters)
+
+For the hybrid model the test set is also scored with shot noise
+(config.EVAL_SHOTS shots per circuit, like the paper's QASM simulator).
 
 The target is standardised with TRAIN mean/std by default: the model learns
 (y - mu) / sd and its outputs are mapped back with * sd + mu, so all reported
@@ -36,12 +45,22 @@ from models.classical_gnn import ClassicalGENConvModel
 from models.hybrid_gnn import HybridQuantumGNN, get_flat_params, set_flat_params
 
 
-def build_model(name: str, node_dim: int, edge_dim: int):
+OPTIMIZERS = ["NGOpt", "CMA", "TwoPointsDE", "PSO", "OnePlusOne"]
+
+
+def build_model(name: str, node_dim: int, edge_dim: int, hidden: int):
     if name == "classical":
-        return ClassicalGENConvModel(node_dim, edge_dim)
+        return ClassicalGENConvModel(node_dim, edge_dim, hidden)
     if name == "hybrid":
-        return HybridQuantumGNN(node_dim, edge_dim)
+        return HybridQuantumGNN(node_dim, edge_dim, hidden)
     raise ValueError(name)
+
+
+def quantum_mask(model) -> np.ndarray:
+    """Boolean mask over the flat parameter vector: True for the circuit angles."""
+    return np.concatenate([
+        np.full(p.numel(), name == "q_params") for name, p in model.named_parameters()
+    ])
 
 
 @torch.no_grad()
@@ -65,12 +84,26 @@ def main() -> None:
     parser.add_argument("--features", choices=list(config.FEATURE_SETS), default=config.DEFAULT_FEATURE_SET)
     parser.add_argument("--seed", type=int, default=config.SEED)
     parser.add_argument("--no-target-scaling", dest="target_scaling", action="store_false")
+    parser.add_argument("--hidden", type=int, default=config.GNN_HIDDEN)
+    parser.add_argument("--optimizer", choices=OPTIMIZERS, default="NGOpt")
+    parser.add_argument("--freeze-quantum", action="store_true")
+    parser.add_argument("--dataset", choices=["paper", "all"], default="paper")
     args = parser.parse_args()
+    if args.freeze_quantum and args.model != "hybrid":
+        parser.error("--freeze-quantum only applies to --model hybrid")
     tag = args.model
     if args.features != "full":
         tag += f"_{args.features}"
     if not args.target_scaling:
         tag += "_noscale"
+    if args.hidden != config.GNN_HIDDEN:
+        tag += f"_h{args.hidden}"
+    if args.optimizer != "NGOpt":
+        tag += f"_{args.optimizer.lower()}"
+    if args.freeze_quantum:
+        tag += "_frozenq"
+    if args.dataset != "paper":
+        tag += f"_{args.dataset}"
     if args.iterations != config.N_ITERATIONS:
         tag += f"_it{args.iterations}"
     if args.seed != config.SEED:
@@ -80,7 +113,7 @@ def main() -> None:
     np.random.seed(args.seed)
     config.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
-    splits = load_splits(args.features, args.seed)
+    splits = load_splits(args.features, args.seed, args.dataset)
     train_b, val_b, test_b = (as_batch(s) for s in (splits.train, splits.val, splits.test))
     y_train, y_val, y_test = (b.y.numpy().astype(np.float64) for b in (train_b, val_b, test_b))
     if args.target_scaling:
@@ -91,14 +124,24 @@ def main() -> None:
     def predict_energy(batch) -> np.ndarray:
         return predict(model, batch) * y_sd + y_mu
 
-    model = build_model(args.model, train_b.x.shape[1], train_b.edge_attr.shape[1])
+    model = build_model(args.model, train_b.x.shape[1], train_b.edge_attr.shape[1], args.hidden)
     x0 = get_flat_params(model)
-    print(f"model={args.model}  features={args.features}  trainable parameters={x0.size}  "
-          f"iterations={args.iterations}")
+    # the optimiser only sees the free entries; frozen ones stay at x0
+    free = ~quantum_mask(model) if args.freeze_quantum else np.ones(x0.size, dtype=bool)
 
-    parametrization = ng.p.Array(init=x0)
+    def full_vector(free_values) -> np.ndarray:
+        vec = x0.copy()
+        vec[free] = free_values
+        return vec
+
+    print(f"model={args.model}  features={args.features}  trainable parameters={free.sum()}  "
+          f"iterations={args.iterations}  optimizer={args.optimizer}")
+
+    parametrization = ng.p.Array(init=x0[free])
     parametrization.random_state = np.random.RandomState(args.seed)
-    optimizer = ng.optimizers.NGOpt(parametrization=parametrization, budget=args.iterations)
+    optimizer = ng.optimizers.registry[args.optimizer](
+        parametrization=parametrization, budget=args.iterations
+    )
 
     best_val, best_vec = np.inf, x0.copy()
     train_curve, val_curve = [], []
@@ -106,7 +149,8 @@ def main() -> None:
 
     for it in range(1, args.iterations + 1):
         candidate = optimizer.ask()
-        set_flat_params(model, candidate.value)
+        vector = full_vector(candidate.value)
+        set_flat_params(model, vector)
         train_loss = mse(predict_energy(train_b), y_train)
         optimizer.tell(candidate, train_loss)
 
@@ -114,7 +158,7 @@ def main() -> None:
         train_curve.append(train_loss)
         val_curve.append(val_loss)
         if val_loss < best_val:
-            best_val, best_vec = val_loss, np.array(candidate.value, copy=True)
+            best_val, best_vec = val_loss, vector
 
         if it % config.LOG_EVERY == 0 or it == 1:
             print(f"iter {it:5d}  train MSE {train_loss:.4f}  val MSE {val_loss:.4f}  "
@@ -129,7 +173,12 @@ def main() -> None:
         "seed": args.seed,
         "target_scaling": args.target_scaling,
         "iterations": args.iterations,
-        "n_parameters": int(x0.size),
+        "hidden": args.hidden,
+        "optimizer": args.optimizer,
+        "freeze_quantum": args.freeze_quantum,
+        "dataset": args.dataset,
+        "n_train": len(splits.train),
+        "n_parameters": int(free.sum()),
         "best_val_mse": best_val,
         "test_mse": mse(pred_test, y_test),
         "test_mae": float(mean_absolute_error(y_test, pred_test)),
@@ -137,6 +186,14 @@ def main() -> None:
         "test_r2_score": float(r2_score(y_test, pred_test)),
         "seconds": time.time() - start,
     }
+    if args.model == "hybrid":
+        # same trained model, but every <Z_i> estimated from EVAL_SHOTS measurements
+        model.shots = config.EVAL_SHOTS
+        r2_shots = [fit_r2(y_test, predict_energy(test_b)) for _ in range(config.EVAL_SHOT_REPEATS)]
+        model.shots = None
+        metrics["eval_shots"] = config.EVAL_SHOTS
+        metrics["test_r2_linear_fit_shots"] = float(np.mean(r2_shots))
+        metrics["test_r2_linear_fit_shots_std"] = float(np.std(r2_shots))
     print(json.dumps(metrics, indent=2))
 
     out = config.RESULTS_DIR

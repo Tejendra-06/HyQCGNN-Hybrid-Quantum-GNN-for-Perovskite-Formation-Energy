@@ -1,6 +1,6 @@
 """XGBoost baseline + feature-importance analysis (paper Section II.C, Figs. 3c and 4).
 
-Run:  python baseline_xgboost.py   [--features reduced] [--seed N]
+Run:  python baseline_xgboost.py   [--features reduced] [--seed N] [--dataset all]
 
 All graphs have the same size and connectivity, so each one is flattened into a
 table row (35 node features + 40 upper-triangle edge features). XGBoost is
@@ -28,13 +28,16 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--features", choices=list(config.FEATURE_SETS), default=config.DEFAULT_FEATURE_SET)
     parser.add_argument("--seed", type=int, default=config.SEED)
+    parser.add_argument("--dataset", choices=["paper", "all"], default="paper")
     args = parser.parse_args()
     tag = "xgboost" if args.features == "full" else f"xgboost_{args.features}"
+    if args.dataset != "paper":
+        tag += f"_{args.dataset}"
     if args.seed != config.SEED:
         tag += f"_s{args.seed}"
 
     config.RESULTS_DIR.mkdir(parents=True, exist_ok=True)
-    splits = load_splits(args.features, args.seed)
+    splits = load_splits(args.features, args.seed, args.dataset)
     x_tr, y_tr, names = flatten_graphs(splits.train, args.features)
     x_va, y_va, _ = flatten_graphs(splits.val, args.features)
     x_te, y_te, _ = flatten_graphs(splits.test, args.features)
@@ -55,6 +58,8 @@ def main() -> None:
         "model": "xgboost",
         "features": args.features,
         "seed": args.seed,
+        "dataset": args.dataset,
+        "n_train": len(splits.train),
         "best_iteration": int(model.best_iteration),
         "test_mse": float(np.mean((pred - y_te) ** 2)),
         "test_mae": float(mean_absolute_error(y_te, pred)),

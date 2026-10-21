@@ -2,9 +2,9 @@
   "model": "xgboost",
   "features": "full",
   "seed": 4,
-  "best_iteration": 769,
-  "test_mse": 0.21701914569644085,
-  "test_mae": 0.3860057270526886,
-  "test_r2_linear_fit": 0.5784943486770404,
-  "test_r2_score": 0.5554262256025009
+  "best_iteration": 296,
+  "test_mse": 0.12189105222269618,
+  "test_mae": 0.28515249252319336,
+  "test_r2_linear_fit": 0.7836670269322817,
+  "test_r2_score": 0.7503005323423158
 }

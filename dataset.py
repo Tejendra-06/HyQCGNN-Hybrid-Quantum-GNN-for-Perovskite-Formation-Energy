@@ -1,7 +1,8 @@
 """Splitting and scaling of the graph data set (shared by every model).
 
 `load_splits()` returns train / validation / test lists of PyG `Data` objects
-(196 / 25 / 25 by default), keeping only the columns of the chosen feature set
+(196 / 25 / 25 for the paper-sized data set, 80/10/10 % for `dataset="all"`),
+keeping only the columns of the chosen feature set
 (see config.FEATURE_SETS). Node and edge features are standardised with
 statistics computed on the TRAINING graphs only, so nothing leaks from the
 validation or test sets. `flatten_graphs()` produces the tabular view used by
@@ -23,12 +24,21 @@ class Splits:
     test: list
 
 
-def _split_indices(n: int, seed: int):
+def split_sizes(n: int, dataset: str = "paper"):
+    if dataset == "paper":
+        return config.N_TRAIN, config.N_VAL, config.N_TEST
+    f_train, f_val, _ = config.ALL_SPLIT_FRACTIONS
+    n_train, n_val = round(f_train * n), round(f_val * n)
+    return n_train, n_val, n - n_train - n_val
+
+
+def _split_indices(n: int, seed: int, dataset: str = "paper"):
     rng = np.random.default_rng(seed)
     perm = rng.permutation(n)
-    a = config.N_TRAIN
-    b = a + config.N_VAL
-    c = b + config.N_TEST
+    n_train, n_val, n_test = split_sizes(n, dataset)
+    a = n_train
+    b = a + n_val
+    c = b + n_test
     return perm[:a], perm[a:b], perm[b:c]
 
 
@@ -52,12 +62,19 @@ def _select_columns(g: Data, feature_set: str) -> Data:
     return g
 
 
-def load_splits(feature_set: str = config.DEFAULT_FEATURE_SET, seed: int = config.SEED) -> Splits:
-    if not config.GRAPH_PATH.exists():
-        raise SystemExit("Run `python fetch_data.py` then `python featurize.py` first.")
-    graphs = torch.load(config.GRAPH_PATH, weights_only=False)
-    graphs = graphs[: config.N_TOTAL]
-    tr, va, te = _split_indices(len(graphs), seed)
+def load_splits(feature_set: str = config.DEFAULT_FEATURE_SET, seed: int = config.SEED,
+                dataset: str = "paper") -> Splits:
+    """dataset="paper": the 246-structure sample; "all": every ABO3 oxide."""
+    if dataset == "paper":
+        path, hint = config.GRAPH_PATH, "`python fetch_data.py` then `python featurize.py`"
+    else:
+        path, hint = config.ALL_GRAPH_PATH, "`python fetch_data.py --all` then `python featurize.py --all`"
+    if not path.exists():
+        raise SystemExit(f"Run {hint} first.")
+    graphs = torch.load(path, weights_only=False)
+    if dataset == "paper":
+        graphs = graphs[: config.N_TOTAL]
+    tr, va, te = _split_indices(len(graphs), seed, dataset)
     by_split = {
         "train": [_select_columns(graphs[i], feature_set) for i in tr],
         "val": [_select_columns(graphs[i], feature_set) for i in va],

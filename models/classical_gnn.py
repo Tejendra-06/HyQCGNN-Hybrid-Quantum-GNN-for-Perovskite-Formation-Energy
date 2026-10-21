@@ -57,9 +57,9 @@ class GENConvReducer(nn.Module):
 
 
 class ClassicalGENConvModel(nn.Module):
-    def __init__(self, node_dim: int, edge_dim: int):
+    def __init__(self, node_dim: int, edge_dim: int, hidden: int = config.GNN_HIDDEN):
         super().__init__()
-        self.reducer = GENConvReducer(node_dim, edge_dim)
+        self.reducer = GENConvReducer(node_dim, edge_dim, hidden)
         self.readout = nn.Linear(config.N_ATOMS ** 2, 1)
 
     def forward(self, data) -> torch.Tensor:

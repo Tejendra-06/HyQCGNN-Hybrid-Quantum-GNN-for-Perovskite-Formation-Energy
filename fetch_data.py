@@ -1,12 +1,16 @@
 """Step 1 - download the perovskite dataset and keep only ABO3 oxides.
 
-Run:  python fetch_data.py
+Run:  python fetch_data.py          (the 246-structure sample used everywhere)
+      python fetch_data.py --all    (also save every ABO3 oxide, for subset_study.py
+                                     and `--dataset all` training)
 
 Source: the Castelli perovskites data set as packaged in MatBench
 (`matbench_perovskites`, 18,928 five-atom cubic perovskites with DFT formation
 energies). We keep oxides with formula ABO3, draw a reproducible random sample
 of N_TOTAL structures (paper: 246) and store them in data/.
 """
+import argparse
+
 import numpy as np
 from pymatgen.core import Structure
 
@@ -24,6 +28,9 @@ def is_abo3_oxide(structure: Structure) -> bool:
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--all", action="store_true", help="also save every ABO3 oxide")
+    args = parser.parse_args()
     from matminer.datasets import load_dataset  # imported lazily: slow import
 
     config.DATA_DIR.mkdir(parents=True, exist_ok=True)
@@ -40,6 +47,10 @@ def main() -> None:
         raise RuntimeError(
             f"Only {len(df)} ABO3 oxides found, need {config.N_TOTAL}. Lower N_TOTAL in config.py."
         )
+
+    if args.all:
+        df.to_pickle(config.ALL_RAW_PATH)
+        print(f"Saved all {len(df)} ABO3 oxides -> {config.ALL_RAW_PATH}")
 
     rng = np.random.default_rng(config.SEED)
     keep = rng.choice(len(df), size=config.N_TOTAL, replace=False)

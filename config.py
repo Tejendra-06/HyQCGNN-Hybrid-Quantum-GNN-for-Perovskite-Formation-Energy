@@ -11,6 +11,8 @@ DATA_DIR = ROOT / "data"
 RESULTS_DIR = ROOT / "results"
 RAW_PATH = DATA_DIR / "oxide_perovskites_raw.pkl"   # output of fetch_data.py
 GRAPH_PATH = DATA_DIR / "graphs.pt"                 # output of featurize.py
+ALL_RAW_PATH = DATA_DIR / "oxide_perovskites_all.pkl"   # every ABO3 oxide (fetch_data.py --all)
+ALL_GRAPH_PATH = DATA_DIR / "graphs_all.pt"             # featurize.py --all
 
 # --------------------------------------------------------------- dataset
 MATBENCH_NAME = "matbench_perovskites"  # Castelli perovskites via MatBench
@@ -23,6 +25,9 @@ N_TOTAL = 246
 N_TRAIN = 196
 N_VAL = 25
 N_TEST = 25
+
+# "all" data set (every ABO3 oxide, ~2650): 80 / 10 / 10 split instead
+ALL_SPLIT_FRACTIONS = (0.8, 0.1, 0.1)
 
 # ----------------------------------------------------------- graph layout
 N_ATOMS = 5      # ABO3 primitive cell = 5 atoms = 5 graph nodes
@@ -61,3 +66,7 @@ GNN_HIDDEN = 4          # width of the GENConv embedding before reduction
 # ------------------------------------------------- gradient-free training
 N_ITERATIONS = 2000     # paper: 2000 Nevergrad (NGOpt) iterations
 LOG_EVERY = 50
+
+# --------------------------------------------------- shot-noise evaluation
+EVAL_SHOTS = 1024        # shots per circuit when scoring the hybrid with sampling noise
+EVAL_SHOT_REPEATS = 20   # independent shot draws averaged in the reported score

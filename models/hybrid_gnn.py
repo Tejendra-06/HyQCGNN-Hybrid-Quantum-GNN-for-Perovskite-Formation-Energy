@@ -21,18 +21,21 @@ from .quantum_layer import N_QUANTUM_PARAMS, QuantumLayer
 
 
 class HybridQuantumGNN(nn.Module):
-    def __init__(self, node_dim: int, edge_dim: int):
+    def __init__(self, node_dim: int, edge_dim: int, hidden: int = config.GNN_HIDDEN):
         super().__init__()
-        self.reducer = GENConvReducer(node_dim, edge_dim)
+        self.reducer = GENConvReducer(node_dim, edge_dim, hidden)
         self.quantum = QuantumLayer()
         self.q_params = nn.Parameter(torch.rand(N_QUANTUM_PARAMS) * 2 * np.pi)
         self.out_weight = nn.Parameter(torch.ones(config.N_QUBITS) / config.N_QUBITS)
         self.out_bias = nn.Parameter(torch.zeros(1))
+        self.shots = None   # None = exact expectation values; an int = shot-noise estimate
+        self.shot_rng = np.random.default_rng(config.SEED)
 
     @torch.no_grad()
     def forward(self, data) -> torch.Tensor:
         matrix = self.reducer(data).double().cpu().numpy()              # (B, 25)
-        z = self.quantum.forward(matrix, self.q_params.double().cpu().numpy())  # (B, 5)
+        z = self.quantum.forward(matrix, self.q_params.double().cpu().numpy(),
+                                 shots=self.shots, rng=self.shot_rng)   # (B, 5)
         z = torch.from_numpy(z).to(self.out_weight.dtype)
         return z @ self.out_weight + self.out_bias
 
