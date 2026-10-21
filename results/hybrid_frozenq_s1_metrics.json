@@ -1,0 +1,22 @@
+{
+  "model": "hybrid",
+  "features": "full",
+  "seed": 1,
+  "target_scaling": true,
+  "iterations": 2000,
+  "hidden": 4,
+  "optimizer": "NGOpt",
+  "freeze_quantum": true,
+  "dataset": "paper",
+  "n_train": 196,
+  "n_parameters": 98,
+  "best_val_mse": 0.2678615928213255,
+  "test_mse": 0.2676382706385971,
+  "test_mae": 0.40643464036708593,
+  "test_r2_linear_fit": 0.4069965820550003,
+  "test_r2_score": 0.34858529134910954,
+  "seconds": 17.61011552810669,
+  "eval_shots": 1024,
+  "test_r2_linear_fit_shots": 0.38771004303167095,
+  "test_r2_linear_fit_shots_std": 0.02557453195251739
+}

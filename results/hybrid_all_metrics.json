@@ -1,0 +1,22 @@
+{
+  "model": "hybrid",
+  "features": "full",
+  "seed": 42,
+  "target_scaling": true,
+  "iterations": 2000,
+  "hidden": 4,
+  "optimizer": "NGOpt",
+  "freeze_quantum": false,
+  "dataset": "all",
+  "n_train": 2122,
+  "n_parameters": 128,
+  "best_val_mse": 0.19356329789361676,
+  "test_mse": 0.19662621331100655,
+  "test_mae": 0.3618508975110175,
+  "test_r2_linear_fit": 0.5480453619600645,
+  "test_r2_score": 0.5463308179868513,
+  "seconds": 61.163103103637695,
+  "eval_shots": 1024,
+  "test_r2_linear_fit_shots": 0.5409973614334465,
+  "test_r2_linear_fit_shots_std": 0.009890353652754142
+}

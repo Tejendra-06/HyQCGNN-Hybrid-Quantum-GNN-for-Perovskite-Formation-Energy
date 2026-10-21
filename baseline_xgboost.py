@@ -50,6 +50,7 @@ def main() -> None:
         colsample_bytree=0.9,
         early_stopping_rounds=50,
         random_state=args.seed,
+        n_jobs=1,  # results change with the thread count; one thread = same on every machine
     )
     model.fit(x_tr, y_tr, eval_set=[(x_va, y_va)], verbose=False)
     pred = model.predict(x_te)
@@ -71,6 +72,8 @@ def main() -> None:
     np.savez(config.RESULTS_DIR / f"{tag}_predictions.npz", y_true=y_te, y_pred=pred)
 
     importances = pd.Series(model.feature_importances_, index=names).sort_values()
+    (config.RESULTS_DIR / f"{tag}_importance.json").write_text(
+        json.dumps({k: float(v) for k, v in importances.items()}, indent=2))
     top = importances.tail(20)
     fig, ax = plt.subplots(figsize=(7, 7))
     top.plot.barh(ax=ax, color="#4c9f50")

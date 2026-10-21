@@ -4,9 +4,9 @@
   "seed": 3,
   "dataset": "paper",
   "n_train": 196,
-  "best_iteration": 848,
-  "test_mse": 0.09092117457171842,
-  "test_mae": 0.24168022453784943,
-  "test_r2_linear_fit": 0.7401607908694117,
-  "test_r2_score": 0.7137150282280604
+  "best_iteration": 276,
+  "test_mse": 0.10303254933345013,
+  "test_mae": 0.26383770048618316,
+  "test_r2_linear_fit": 0.6933975550183964,
+  "test_r2_score": 0.6755797467810887
 }

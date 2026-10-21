@@ -34,6 +34,7 @@ python train_gradient_free.py --model hybrid --seed 1   # repeat for every seed 
 python tune_xgboost.py --seed 1                        # tuned XGBoost per seed
 python summarize_seeds.py                               # mean +/- std -> results/seed_summary.json
 python xgboost_learning_curve.py                        # XGBoost on growing subsets of all ABO3 oxides
+python make_report_figures.py                           # report Figures 8-12 + report_figures/report_numbers.json
 ```
 Other `train_gradient_free.py` options: `--iterations N`, `--no-target-scaling`,
 `--hidden N`, `--optimizer {NGOpt,CMA,TwoPointsDE,PSO,OnePlusOne}`, `--freeze-quantum`
@@ -59,6 +60,7 @@ The final report is `HyQCGNN_Final_Project_Report.docx`, with figures in `report
 | `tune_xgboost.py` | randomised hyper-parameter search for XGBoost (5-fold CV on train) |
 | `summarize_seeds.py` | mean +/- std of test metrics across seeds |
 | `xgboost_learning_curve.py` | XGBoost R^2 vs training-set size on all ABO3 oxides |
+| `make_report_figures.py` | result figures and numbers used in the report |
 | `tests/test_quantum_layer.py` | fast quantum layer == full Qiskit circuit |
 
 ## Notes on interpretation

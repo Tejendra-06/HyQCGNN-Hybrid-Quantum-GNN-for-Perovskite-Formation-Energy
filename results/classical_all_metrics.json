@@ -1,0 +1,19 @@
+{
+  "model": "classical",
+  "features": "full",
+  "seed": 42,
+  "target_scaling": true,
+  "iterations": 2000,
+  "hidden": 4,
+  "optimizer": "NGOpt",
+  "freeze_quantum": false,
+  "dataset": "all",
+  "n_train": 2122,
+  "n_parameters": 118,
+  "best_val_mse": 0.1803610070117002,
+  "test_mse": 0.18460735554210175,
+  "test_mae": 0.3461542560764839,
+  "test_r2_linear_fit": 0.5748712860390698,
+  "test_r2_score": 0.5740615324268785,
+  "seconds": 37.24407505989075
+}

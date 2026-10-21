@@ -68,6 +68,7 @@ def fit_and_score(x_tr, y_tr, x_te, y_te, seed: int) -> dict:
         colsample_bytree=0.9,
         early_stopping_rounds=50,
         random_state=seed,
+        n_jobs=1,  # thread count changes the result; see baseline_xgboost.py
     )
     model.fit(x_tr[fit], y_tr[fit], eval_set=[(x_tr[es], y_tr[es])], verbose=False)
     pred = model.predict(x_te)
