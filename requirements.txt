@@ -11,3 +11,5 @@ torch-geometric
 qiskit
 nevergrad
 pytest
+fastapi
+uvicorn[standard]

@@ -44,6 +44,31 @@ file names. Hybrid runs also report the test R^2 under shot noise (`config.EVAL_
 
 The final report is `HyQCGNN_Final_Project_Report.docx`, with figures in `report_figures/`.
 
+## Web app: predict any ABO3 oxide
+```bash
+python -m uvicorn webapp.server:app --port 8765     # or double-click run_app.bat on Windows
+```
+Open http://localhost:8765 and type a formula, e.g. `SrTiO3`. **The first element is the A site
+(12-fold cage) and the second is the B site (octahedral)**; `TiSrO3` is a different compound.
+It needs the `--dataset all` artefacts: `fetch_data.py --all`, `featurize.py --all` and the two
+`train_gradient_free.py --model {classical,hybrid} --dataset all` runs. The XGBoost model is
+trained on first start and cached as `results/xgboost_all_model.json`.
+
+For each formula the app shows:
+- formation energy from XGBoost (the headline value, test R^2 0.96), the classical GNN and the hybrid
+  quantum GNN, each with its test-set MAE, plus the DFT value and its train/val/test split when known;
+- Goldschmidt tolerance factor, octahedral factor and Bartel's tau, from Shannon radii;
+- an interactive 3D unit cell, SHAP contributions for the XGBoost prediction, the hybrid model's
+  5x5 encoded matrix and qubit <Z> read-out, and the most similar known compounds.
+
+Other tabs: **Batch** (paste or upload up to 500 formulas, download CSV), **Explore** (A x B map of
+every DFT energy, click to predict) and **Models** (scores and method). Pairs that are not in
+the data set are predicted on an ideal cubic cell whose lattice constant is fitted from Shannon
+radii, and are flagged as extrapolations, as are elements the models never saw.
+
+REST API (interactive docs at `/docs`): `GET /api/predict/SrTiO3`, `POST /api/batch`
+with `{"formulas": [...]}`, `GET /api/overview`. Command line: `python predictor.py SrTiO3 BaZrO3`.
+
 ## Files
 | File | Role |
 |---|---|
@@ -62,6 +87,10 @@ The final report is `HyQCGNN_Final_Project_Report.docx`, with figures in `report
 | `xgboost_learning_curve.py` | XGBoost R^2 vs training-set size on all ABO3 oxides |
 | `make_report_figures.py` | result figures and numbers used in the report |
 | `tests/test_quantum_layer.py` | fast quantum layer == full Qiskit circuit |
+| `predictor.py` | prediction engine: formula -> structure -> graph -> all three models |
+| `webapp/server.py` | FastAPI server and REST API |
+| `webapp/static/` | web interface (HTML / CSS / JS) |
+| `tests/test_predictor.py` | formula parsing; app models reproduce the reported test scores |
 
 ## Notes on interpretation
 The paper leaves a few details open; choices made here: node order is [A, B, O, O, O];
