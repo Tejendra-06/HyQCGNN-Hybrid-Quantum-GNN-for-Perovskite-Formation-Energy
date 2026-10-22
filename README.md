@@ -69,6 +69,20 @@ radii, and are flagged as extrapolations, as are elements the models never saw.
 REST API (interactive docs at `/docs`): `GET /api/predict/SrTiO3`, `POST /api/batch`
 with `{"formulas": [...]}`, `GET /api/overview`. Command line: `python predictor.py SrTiO3 BaZrO3`.
 
+### Deploying (Docker / Hugging Face Spaces)
+The app needs about 500 MB of RAM, so 512 MB free tiers are too small; a free Hugging Face Docker
+Space (16 GB) works. `deploy/stage_hf_space.py` copies only what the app needs (~7 MB of code,
+data and trained parameters) into `build/hf-space/`, with the Space card from `deploy/space_README.md`.
+```bash
+python deploy/stage_hf_space.py
+docker build -t hyqcgnn build/hf-space && docker run -p 7860:7860 hyqcgnn   # local test: http://localhost:7860
+hf auth login                                                             # once, with a write token
+hf repo create <user>/hyqcgnn --repo-type space --space-sdk docker
+hf upload <user>/hyqcgnn build/hf-space . --repo-type space                # builds and serves the Space
+```
+The image installs `requirements-app.txt` (pinned, CPU-only PyTorch) and trains the XGBoost model
+during the build. Re-run the stage and upload commands to publish changes.
+
 ## Files
 | File | Role |
 |---|---|
@@ -90,6 +104,8 @@ with `{"formulas": [...]}`, `GET /api/overview`. Command line: `python predictor
 | `predictor.py` | prediction engine: formula -> structure -> graph -> all three models |
 | `webapp/server.py` | FastAPI server and REST API |
 | `webapp/static/` | web interface (HTML / CSS / JS) |
+| `Dockerfile`, `requirements-app.txt` | web app container (pinned app-only dependencies) |
+| `deploy/` | stages the Hugging Face Space (`stage_hf_space.py`) and its card |
 | `tests/test_predictor.py` | formula parsing; app models reproduce the reported test scores |
 
 ## Notes on interpretation

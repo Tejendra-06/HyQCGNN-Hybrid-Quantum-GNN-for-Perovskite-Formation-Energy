@@ -1,0 +1,14 @@
+# Web app only (Dockerfile / Hugging Face Space). Pinned to the versions the app was tested with;
+# the pickled data set needs the same pandas / pymatgen. Training needs requirements.txt instead.
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch==2.14.1
+torch-geometric==2.8.1
+numpy==2.5.4
+scipy==1.18.1
+pandas==2.3.3
+scikit-learn==1.9.1
+xgboost==3.4.1
+pymatgen==2026.9.24
+qiskit==2.6.0
+fastapi==0.159.1
+uvicorn==0.54.0
